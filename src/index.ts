@@ -1,7 +1,6 @@
 import {
   Plugin,
-  Setting,
-  showMessage
+  Setting
 } from "siyuan";
 
 import "./index.scss";
@@ -20,8 +19,7 @@ export default class synca extends Plugin {
       });
       // 可选：处理响应数据
       const result = await response.json();
-      if (result.code === 0) {
-      }
+      if (result.code === 0) { /* empty */ }
     } catch (error) {
       console.error("Error during sync:", error);
     }
@@ -32,6 +30,7 @@ export default class synca extends Plugin {
     if (!isFetchOverridden) {
       const originalFetch = window.fetch;
       const self = this; // 保存对当前类实例的引用
+      const synctime = await this.loadData("synctime");
 
       window.fetch = async function (url, ...args) {
         try {
@@ -40,9 +39,8 @@ export default class synca extends Plugin {
           if (url.endsWith("/api/transactions")) {
             console.log("监听到文件变动");
             // 调整延时
-            const synctime = await this.getData("synctime");
             await new Promise(resolve => setTimeout(resolve, synctime));
-            await self.push(); // 调用 sync 函数
+            await self.sync(); // 调用 sync 函数
           }
 
           return response;
